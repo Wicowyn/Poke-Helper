@@ -1,0 +1,206 @@
+buildscript {
+    repositories {
+        mavenCentral()
+
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'me.tatarka:gradle-retrolambda:3.2.5'
+        classpath 'com.android.tools.build:gradle:2.1.2'
+        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+        classpath 'com.github.ben-manes:gradle-versions-plugin:0.13.0'
+        classpath 'com.jakewharton.hugo:hugo-plugin:1.2.1'
+        classpath 'com.fernandocejas.frodo:frodo-plugin:0.8.3'
+        classpath 'com.google.gms:google-services:3.0.0'
+    }
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'me.tatarka.retrolambda'
+apply plugin: 'com.neenbedankt.android-apt'
+apply plugin: 'com.github.ben-manes.versions'
+apply plugin: 'com.jakewharton.hugo'
+apply plugin: 'com.fernandocejas.frodo'
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion "24.0.1"
+
+    defaultConfig {
+        applicationId "fr.wicowyn.pokehelper"
+        multiDexEnabled true
+
+        minSdkVersion 15
+        targetSdkVersion 24
+
+        versionCode 1
+        versionName "1.0.0"
+    }
+
+    dexOptions {
+        incremental true
+        javaMaxHeapSize "2g"
+    }
+
+    compileOptions {
+        encoding "UTF-8"
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    signingConfigs {
+        debug {
+            storeFile file("debug.keystore")
+        }
+
+        Properties properties = new Properties()
+        properties.load(project.file("local.properties").newDataInputStream())
+
+        release {
+            storeFile file("debug.keystore")
+            storeFile       file(properties.getProperty("sign.keystore.file"))
+            storePassword   properties.getProperty("sign.keystore.password")
+            keyAlias        properties.getProperty("sign.alias")
+            keyPassword     properties.getProperty("sign.alias.password")
+        }
+    }
+
+    buildTypes {
+        debug {
+            debuggable true
+            minifyEnabled false
+
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-DEBUG"
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            signingConfig signingConfigs.debug
+        }
+        release {
+            debuggable false
+            minifyEnabled false
+
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            signingConfig signingConfigs.release
+        }
+    }
+
+    applicationVariants.all { variant ->
+        variant.resValue "string", "application_id", "${applicationId}"
+    }
+
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES.txt'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/dependencies.txt'
+        exclude 'META-INF/LGPL2.1'
+        exclude 'META-INF/maven/com.google.guava/guava/pom.properties'
+        exclude 'META-INF/maven/com.google.guava/guava/pom.xml'
+    }
+
+    lintOptions {
+        abortOnError true
+    }
+}
+
+repositories {
+    maven {
+        url "https://clojars.org/repo/"
+    }
+
+    maven {
+        url "https://jitpack.io"
+    }
+
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+def ANDROID_SDK = "24.1.1"
+def PLAY_SERVICE = "9.2.1"
+def FIREBASE = "9.2.1"
+def DBFLOW = "3.1.1"
+def ICEPICK = "3.2.0"
+def RX_BINDING = "0.4.0"
+
+dependencies {
+    compile 'com.android.support:support-v13:' + ANDROID_SDK
+    compile 'com.android.support:appcompat-v7:' + ANDROID_SDK
+    compile 'com.android.support:design:' + ANDROID_SDK
+    compile 'com.android.support:recyclerview-v7:' + ANDROID_SDK
+    compile 'com.android.support:customtabs:' + ANDROID_SDK
+    compile 'com.google.android.gms:play-services-base:' + PLAY_SERVICE
+    compile 'com.google.android.gms:play-services-location:' + PLAY_SERVICE
+    compile 'com.google.android.gms:play-services-maps:' + PLAY_SERVICE
+    compile 'com.google.firebase:firebase-analytics:' + FIREBASE
+    compile 'com.google.firebase:firebase-crash:' + FIREBASE
+
+    apt "com.github.Raizlabs.DBFlow:dbflow-processor:" + DBFLOW
+    compile "com.github.Raizlabs.DBFlow:dbflow-core:" + DBFLOW
+    compile "com.github.Raizlabs.DBFlow:dbflow:" + DBFLOW
+
+    compile 'frankiesardo:icepick:' + ICEPICK
+    provided 'frankiesardo:icepick-processor:' + ICEPICK
+
+    compile 'io.reactivex:rxjava:1.1.5'
+    compile 'io.reactivex:rxandroid:1.2.0'
+    compile 'com.jakewharton.rxbinding:rxbinding:' + RX_BINDING
+    compile 'com.jakewharton.rxbinding:rxbinding-design:' + RX_BINDING
+    compile 'com.jakewharton.rxbinding:rxbinding-support-v4:' + RX_BINDING
+    compile 'com.jakewharton.rxbinding:rxbinding-appcompat-v7:' + RX_BINDING
+    compile 'com.jakewharton.rxbinding:rxbinding-recyclerview-v7:' + RX_BINDING
+
+    compile('com.github.afollestad.material-dialogs:core:0.8.6.1') {
+        exclude group: 'com.android.support'
+    }
+
+    compile('com.h6ah4i.android.widget.advrecyclerview:advrecyclerview:0.9.2@aar') {
+        transitive = true
+    }
+
+    compile 'com.android.support:multidex:1.0.1'
+    compile 'com.github.Grover-c13:PokeGOAPI-Java:0.2'
+    compile 'com.jakewharton:butterknife:7.0.1'
+    compile 'com.google.guava:guava:19.0'
+    compile 'joda-time:joda-time:2.9.4'
+    compile 'pub.devrel:easypermissions:0.1.7'
+    compile 'com.squareup.picasso:picasso:2.5.2'
+    compile 'com.github.castorflex.smoothprogressbar:library-circular:1.1.0'
+
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    testCompile 'junit:junit:4.12'
+    compile 'com.android.support:appcompat-v7:24.1.1'
+}
+
+tasks.create(name: 'createPublish', group: 'help', dependsOn: ['clean', 'assembleRelease']) << {
+    println 'Release APK generated'
+}
+
+dependencyUpdates.resolutionStrategy = {
+    componentSelection { rules ->
+        rules.all { ComponentSelection selection ->
+            boolean rejected = ['alpha', 'beta', 'rc', 'cr', 'm'].any { qualifier ->
+                selection.candidate.version ==~ /(?i).*[.-]${qualifier}[.\d-]*/
+            }
+            if (rejected) {
+                selection.reject('Release candidate')
+            }
+        }
+    }
+}
+
+//apply plugin: 'com.google.gms.google-services'
