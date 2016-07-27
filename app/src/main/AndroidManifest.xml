@@ -10,6 +10,10 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".activity.MainActivity">
+        </activity>
+        <activity android:name=".activity.GoogleLoginActivity">
+        </activity>
+        <activity android:name=".activity.OfflineActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 

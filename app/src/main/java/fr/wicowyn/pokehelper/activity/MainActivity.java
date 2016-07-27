@@ -5,6 +5,8 @@ import android.widget.TextView;
 
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.auth.CredentialProvider;
+import com.pokegoapi.auth.GoogleAuthJson;
+import com.pokegoapi.auth.GoogleAuthTokenJson;
 import com.pokegoapi.auth.GoogleCredentialProvider;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
@@ -45,19 +47,19 @@ public class MainActivity extends BaseActivity {
         CredentialProvider auth = null;
         try {
             auth = new GoogleCredentialProvider(http, "1/JIFKZ13b3HhKYYhQeUMwMsjx3kYQnrkNcXuPpswK_no");
-//            auth = new GoogleCredentialProvider(http, new GoogleCredentialProvider.OnGoogleLoginOAuthCompleteListener() {
-//                @Override
-//                public void onInitialOAuthComplete(GoogleAuthJson googleAuthJson) {
-////                    Log.d("yolo", googleAuthJson.toString());
-//                }
-//
-//                @Override
-//                public void onTokenIdReceived(GoogleAuthTokenJson googleAuthTokenJson) {
-//                    Log.d("refresh_token", googleAuthTokenJson.getRefreshToken());
-//                    Log.d("access_token", googleAuthTokenJson.getAccessToken());
-//                    Log.d("token_id", googleAuthTokenJson.getIdToken());
-//                }
-//            }); // currently uses oauth flow so no user or pass needed
+            auth = new GoogleCredentialProvider(http, new GoogleCredentialProvider.OnGoogleLoginOAuthCompleteListener() {
+                @Override
+                public void onInitialOAuthComplete(GoogleAuthJson googleAuthJson) {
+//                    Log.d("yolo", googleAuthJson.toString());
+                }
+
+                @Override
+                public void onTokenIdReceived(GoogleAuthTokenJson googleAuthTokenJson) {
+                    Log.d("refresh_token", googleAuthTokenJson.getRefreshToken());
+                    Log.d("access_token", googleAuthTokenJson.getAccessToken());
+                    Log.d("token_id", googleAuthTokenJson.getIdToken());
+                }
+            }); // currently uses oauth flow so no user or pass needed
 //
             PokemonGo go = new PokemonGo(auth, http);
             // set location
