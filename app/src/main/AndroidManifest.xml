@@ -9,10 +9,26 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activity.MainActivity">
-        </activity>
-        <activity android:name=".activity.GoogleLoginActivity">
-        </activity>
+
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version"/>
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_api"/>
+
+        <activity
+            android:name=".activity.MainActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme"/>
+        <activity
+            android:name=".activity.google.GoogleLoginActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme"/>
+        <activity
+            android:name=".activity.google.GoogleUserLoginActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme"/>
         <activity android:name=".activity.OfflineActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -20,6 +36,10 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <activity
+            android:name=".activity.PokestopActivity"
+            android:label="@string/title_activity_pokestop"
+            android:theme="@style/AppTheme"/>
     </application>
 
 </manifest>

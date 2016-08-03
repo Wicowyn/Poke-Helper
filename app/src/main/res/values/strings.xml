@@ -1,6 +1,11 @@
 <resources>
 
     <string name="google_login">Connexion Google</string>
+    <string name="google_login_2">Connexion Google 2</string>
     <string name="connect_progress">Connexion en cours</string>
+    <string name="pokestop_map">Map des pokestops</string>
+    <string name="enter_code">Entrer code</string>
+
+    <string name="title_activity_pokestop">Pokestops</string>
 
 </resources>

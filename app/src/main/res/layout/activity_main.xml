@@ -11,6 +11,13 @@
     android:orientation="vertical"
     tools:context=".activity.MainActivity">
 
+    <Button
+        android:id="@+id/map_pokestop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="@string/pokestop_map"/>
+
     <TextView
         android:id="@+id/name"
         android:layout_width="wrap_content"

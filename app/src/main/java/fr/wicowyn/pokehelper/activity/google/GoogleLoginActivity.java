@@ -1,4 +1,4 @@
-package fr.wicowyn.pokehelper.activity;
+package fr.wicowyn.pokehelper.activity.google;
 
 import android.content.Context;
 import android.content.Intent;
@@ -17,6 +17,8 @@ import com.pokegoapi.auth.GoogleCredentialProvider;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import fr.wicowyn.pokehelper.R;
+import fr.wicowyn.pokehelper.activity.BaseActivity;
+import fr.wicowyn.pokehelper.preference.AppPreference;
 import okhttp3.OkHttpClient;
 import rx.Observable;
 import rx.schedulers.Schedulers;
@@ -77,7 +79,7 @@ public class GoogleLoginActivity extends BaseActivity implements GoogleCredentia
 
     @Override
     public void onTokenIdReceived(GoogleAuthTokenJson googleAuthTokenJson) {
-        //TODO save it
+        AppPreference.get().setLastAccount(googleAuthTokenJson.getRefreshToken());
         Log.d("refresh_token", googleAuthTokenJson.getRefreshToken());
 
         setResult(RESULT_OK);

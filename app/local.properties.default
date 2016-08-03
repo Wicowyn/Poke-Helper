@@ -1,0 +1,8 @@
+//Copy to local.properties and set values
+
+sign.keystore.file=        Release keystore path
+sign.keystore.password=    Release keystore password
+sign.alias=                Release keystore alias
+sign.alias.password=       Release keystore alias password
+
+api.google=                Google api key

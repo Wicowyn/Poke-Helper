@@ -27,6 +27,9 @@ android {
     compileSdkVersion 24
     buildToolsVersion "24.0.1"
 
+    Properties properties = new Properties()
+    properties.load(project.file("local.properties").newDataInputStream())
+
     defaultConfig {
         applicationId "fr.wicowyn.pokehelper"
         multiDexEnabled true
@@ -61,9 +64,6 @@ android {
             storeFile file("debug.keystore")
         }
 
-        Properties properties = new Properties()
-        properties.load(project.file("local.properties").newDataInputStream())
-
         release {
             storeFile file("debug.keystore")
             storeFile       file(properties.getProperty("sign.keystore.file"))
@@ -94,21 +94,44 @@ android {
 
     applicationVariants.all { variant ->
         variant.resValue "string", "application_id", "${applicationId}"
+        variant.resValue "string", "google_api", "${properties.getProperty("api.google")}"
     }
 
     packagingOptions {
-        exclude 'META-INF/DEPENDENCIES.txt'
+        exclude 'META-INF/maven/net.iharder/base64/pom.xml'
+        exclude 'META-INF/maven/com.squareup.moshi/moshi/pom.properties'
+        exclude 'META-INF/maven/net.iharder/base64/pom.properties'
+        exclude 'META-INF/maven/com.squareup.moshi/moshi/pom.xml'
+
+        pickFirst 'svarzee/gps/gpsoauth/AuthToken.class'
+
+        exclude 'META-INF/maven/com.google.protobuf/protobuf-java/pom.xml'
+        exclude 'META-INF/maven/com.google.protobuf/protobuf-java/pom.properties'
         exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/NOTICE.txt'
-        exclude 'META-INF/NOTICE'
-        exclude 'META-INF/LICENSE'
-        exclude 'META-INF/DEPENDENCIES'
-        exclude 'META-INF/notice.txt'
-        exclude 'META-INF/license.txt'
-        exclude 'META-INF/dependencies.txt'
-        exclude 'META-INF/LGPL2.1'
-        exclude 'META-INF/maven/com.google.guava/guava/pom.properties'
-        exclude 'META-INF/maven/com.google.guava/guava/pom.xml'
+        exclude 'META-INF/maven/com.squareup.okio/okio/pom.xml'
+        exclude 'META-INF/maven/com.squareup.okio/okio/pom.properties'
+
+        exclude 'META-INF/maven/com.squareup.okhttp3/okhttp/pom.properties'
+        exclude 'META-INF/maven/com.squareup.okhttp3/okhttp/pom.xml'
+
+        exclude 'META-INF/maven/com.annimon/stream/pom.properties'
+        exclude 'META-INF/maven/com.annimon/stream/pom.xml'
+
+        pickFirst 'gpsoauth.properties'
+        pickFirst 'google/protobuf/any.proto'
+        pickFirst 'google/protobuf/field_mask.proto'
+        pickFirst 'google/protobuf/plugin.proto'
+        pickFirst 'google/protobuf/compiler/plugin.proto'
+        pickFirst 'google/protobuf/api.proto'
+        pickFirst 'google/protobuf/descriptor.proto'
+        pickFirst 'google/protobuf/wrappers.proto'
+        pickFirst 'google/protobuf/type.proto'
+        pickFirst 'google/protobuf/struct.proto'
+        pickFirst 'google/protobuf/timestamp.proto'
+        pickFirst 'google/protobuf/source_context.proto'
+        pickFirst 'google/protobuf/duration.proto'
+        pickFirst 'google/protobuf/empty.proto'
     }
 
     lintOptions {
@@ -131,8 +154,8 @@ repositories {
 }
 
 def ANDROID_SDK = "24.1.1"
-def PLAY_SERVICE = "9.2.1"
-def FIREBASE = "9.2.1"
+def PLAY_SERVICE = "9.4.0"
+def FIREBASE = "9.4.0"
 def DBFLOW = "3.1.1"
 def ICEPICK = "3.2.0"
 def RX_BINDING = "0.4.0"
@@ -173,10 +196,11 @@ dependencies {
     }
 
     compile 'com.android.support:multidex:1.0.1'
-    compile 'com.github.Grover-c13:PokeGOAPI-Java:0.2'
+    compile 'com.github.Grover-c13:PokeGOAPI-Java:0.3'
     compile 'com.jakewharton:butterknife:7.0.1'
     compile 'com.google.guava:guava:19.0'
     compile 'joda-time:joda-time:2.9.4'
+    compile 'org.javatuples:javatuples:1.2'
     compile 'pub.devrel:easypermissions:0.1.7'
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.github.castorflex.smoothprogressbar:library-circular:1.1.0'
