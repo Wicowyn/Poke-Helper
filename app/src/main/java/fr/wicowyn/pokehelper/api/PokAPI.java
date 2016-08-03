@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.concurrent.Executors;
 
 import POGOProtos.Data.PlayerDataOuterClass;
+import fr.wicowyn.pokehelper.preference.AppPreference;
 import okhttp3.OkHttpClient;
 import rx.Observable;
 import rx.Scheduler;
@@ -30,24 +31,25 @@ public class PokAPI {
         if(pokemonGo == null) {
             OkHttpClient okHttpClient = new OkHttpClient();
 
-            pokemonGo = new PokemonGo(new GoogleCredentialProvider(okHttpClient, "1/JIFKZ13b3HhKYYhQeUMwMsjx3kYQnrkNcXuPpswK_no"), okHttpClient);
-            pokemonGo.setLatitude(48.441326);
-            pokemonGo.setLongitude(-4.415023);
+            pokemonGo = new PokemonGo(new GoogleCredentialProvider(okHttpClient, AppPreference.get().getLastAccount()), okHttpClient);
         }
 
         return pokemonGo;
     }
 
     public static Observable<PokemonGo> getPokemonGo() {
-        return Observable.create(subscriber -> {
-            try {
-                subscriber.onNext(getPokemonGoSync());
-                subscriber.onCompleted();
-            } catch (Exception e) {
-                e.printStackTrace();
-                subscriber.onError(e);
+        return Observable.create(new Observable.OnSubscribe<PokemonGo>() {
+            @Override
+            public void call(Subscriber<? super PokemonGo> subscriber) {
+                try {
+                    subscriber.onNext(getPokemonGoSync());
+                    subscriber.onCompleted();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    subscriber.onError(e);
+                }
             }
-        });
+        }).subscribeOn(scheduler).observeOn(AndroidSchedulers.mainThread());
     }
 
     public static Observable<ArrayList<Pokestop>> pokestop() {

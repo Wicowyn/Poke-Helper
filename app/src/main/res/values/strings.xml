@@ -7,5 +7,6 @@
     <string name="enter_code">Entrer code</string>
 
     <string name="title_activity_pokestop">Pokestops</string>
+    <string name="access_location_needed">On a VRAIMENT besoin d\'accéder à la localisation</string>
 
 </resources>

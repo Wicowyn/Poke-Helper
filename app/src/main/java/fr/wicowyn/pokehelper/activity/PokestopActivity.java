@@ -7,10 +7,12 @@ import android.os.Bundle;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.map.fort.Pokestop;
 
 import org.javatuples.Pair;
@@ -22,10 +24,12 @@ import fr.wicowyn.pokehelper.R;
 import fr.wicowyn.pokehelper.api.PokAPI;
 import hugo.weaving.DebugLog;
 import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Func2;
 
 public class PokestopActivity extends BaseActivity {
     private ArrayList<Marker> markers = new ArrayList<>();
+    private Marker ownMarker;
 
 
     public static Intent newIntent(Context context) {
@@ -39,9 +43,18 @@ public class PokestopActivity extends BaseActivity {
 
         Observable<Pair<Collection<Pokestop>, GoogleMap>> obs = Observable.combineLatest(
                 PokAPI.pokestop(),
-                googleMap(), (Func2<ArrayList<Pokestop>, GoogleMap, Pair<Collection<Pokestop>, GoogleMap>>) Pair::with
+                googleMap(), (Func2<Collection<Pokestop>, GoogleMap, Pair<Collection<Pokestop>, GoogleMap>>) Pair::with
         );
-        unsubscribeOn(DESTROY, obs.subscribe(pair -> loadPokestop(pair.getValue0(), pair.getValue1())));
+
+        Observable<Pair<PokemonGo, GoogleMap>> obsOwn = Observable.combineLatest(
+                PokAPI.getPokemonGo(),
+                googleMap(), Pair::with
+        );
+
+        unsubscribeOn(DESTROY, obsOwn.observeOn(AndroidSchedulers.mainThread())
+                .subscribe(pair -> setMyLocation(pair.getValue0(), pair.getValue1())));
+        unsubscribeOn(DESTROY, obs.observeOn(AndroidSchedulers.mainThread())
+                .subscribe(pair -> loadPokestop(pair.getValue0(), pair.getValue1())));
     }
 
     private Observable<GoogleMap> googleMap() {
@@ -53,6 +66,17 @@ public class PokestopActivity extends BaseActivity {
                 subscriber.onCompleted();
             });
         });
+    }
+
+    @DebugLog
+    private void setMyLocation(PokemonGo pokemonGo, GoogleMap map) {
+        LatLng position = new LatLng(pokemonGo.getLatitude(), pokemonGo.getLongitude());
+
+        if(ownMarker != null) ownMarker.remove();
+
+        ownMarker = map.addMarker(new MarkerOptions()
+                .position(position)
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_person_pin_circle_black_24dp)));
     }
 
     @DebugLog
@@ -68,7 +92,9 @@ public class PokestopActivity extends BaseActivity {
         for(Pokestop pokestop : pokestops) {
             LatLng position = new LatLng(pokestop.getLatitude(), pokestop.getLongitude());
 
-            markers.add(map.addMarker(new MarkerOptions().position(position)));
+            markers.add(map.addMarker(new MarkerOptions()
+                    .position(position)
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_ev_station_black_24dp))));
             boundsBuilder.include(position);
         }
 
