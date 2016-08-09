@@ -196,7 +196,7 @@ dependencies {
     }
 
     compile 'com.android.support:multidex:1.0.1'
-    compile 'com.github.Grover-c13:PokeGOAPI-Java:0.3'
+    compile 'com.pokegoapi:PokeGOAPI-library:0.4.0'
     compile 'com.jakewharton:butterknife:7.0.1'
     compile 'com.google.guava:guava:19.0'
     compile 'joda-time:joda-time:2.9.4'

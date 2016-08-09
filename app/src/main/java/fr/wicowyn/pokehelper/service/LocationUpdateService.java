@@ -40,12 +40,9 @@ public class LocationUpdateService extends IntentService {
 
     @DebugLog
     private void handleLocationUpdate(Location location) {
-        PokAPI.getPokemonGo().subscribe(pokemonGo -> {
-            pokemonGo.setLocation(
-                    location.getLatitude(),
-                    location.getLongitude(),
-                    location.getAltitude()
-            );
-        });
+        PokAPI.setLocation(
+                location.getLatitude(),
+                location.getLongitude(),
+                location.getAltitude());
     }
 }

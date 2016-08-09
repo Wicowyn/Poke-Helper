@@ -1,5 +1,6 @@
 package fr.wicowyn.pokehelper.activity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -14,6 +15,10 @@ import fr.wicowyn.pokehelper.preference.AppPreference;
 public class OfflineActivity extends BaseActivity {
 
     private static final int REQUEST_LOGIN = 5;
+
+    public static Intent newIntent(Context context) {
+        return new Intent(context, OfflineActivity.class);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,12 +37,12 @@ public class OfflineActivity extends BaseActivity {
 
     @OnClick(R.id.google_login)
     public void onGoogleLogin() {
-        startActivity(GoogleLoginActivity.newIntent(this));
+        startActivityForResult(GoogleLoginActivity.newIntent(this), REQUEST_LOGIN);
     }
 
     @OnClick(R.id.google_user_login)
     public void onGoogleLogin2() {
-        startActivity(GoogleUserLoginActivity.newIntent(this));
+        startActivityForResult(GoogleUserLoginActivity.newIntent(this), REQUEST_LOGIN);
     }
 
     @Override

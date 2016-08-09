@@ -44,8 +44,10 @@
 
         <service
             android:name=".service.LocationUpdateService"
-            android:exported="false">
-        </service>
+            android:exported="false"/>
+        <service
+            android:name=".service.PokestopService"
+            android:exported="false"/>
     </application>
 
 </manifest>

@@ -1,6 +1,14 @@
 package fr.wicowyn.pokehelper.api;
 
+import android.Manifest;
+import android.app.PendingIntent;
+import android.content.res.Resources;
+
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.pokegoapi.api.PokemonGo;
+import com.pokegoapi.api.map.MapObjects;
 import com.pokegoapi.api.map.fort.Pokestop;
 import com.pokegoapi.api.player.PlayerProfile;
 import com.pokegoapi.auth.GoogleCredentialProvider;
@@ -8,11 +16,16 @@ import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.concurrent.Executors;
 
 import POGOProtos.Data.PlayerDataOuterClass;
+import POGOProtos.Map.Pokemon.MapPokemonOuterClass;
+import fr.wicowyn.pokehelper.app.MyApplication;
 import fr.wicowyn.pokehelper.preference.AppPreference;
+import fr.wicowyn.pokehelper.service.LocationUpdateService;
 import okhttp3.OkHttpClient;
+import pub.devrel.easypermissions.EasyPermissions;
 import rx.Observable;
 import rx.Scheduler;
 import rx.Subscriber;
@@ -27,11 +40,41 @@ public class PokAPI {
     private static Scheduler scheduler = Schedulers.from(Executors.newSingleThreadExecutor());
 
 
+    public static void disconnect() {
+        AppPreference.get().setLastAccount(null);
+        pokemonGo = null;
+    }
+
+    public static void setLocation(double latitude, double longitude, double altitude) {
+        getPokemonGo().subscribe(pokemonGo -> {
+            pokemonGo.setLocation(latitude, longitude, altitude);
+        });
+    }
+
     public static PokemonGo getPokemonGoSync() throws LoginFailedException, RemoteServerException {
         if(pokemonGo == null) {
             OkHttpClient okHttpClient = new OkHttpClient();
 
-            pokemonGo = new PokemonGo(new GoogleCredentialProvider(okHttpClient, AppPreference.get().getLastAccount()), okHttpClient);
+            GoogleCredentialProvider credentialProvider = new GoogleCredentialProvider(okHttpClient, AppPreference.get().getLastAccount());
+
+            pokemonGo = new PokemonGo(credentialProvider, okHttpClient);
+
+            if(EasyPermissions.hasPermissions(MyApplication.getContext(), Manifest.permission.ACCESS_FINE_LOCATION)) {
+                GoogleApiClient googleApiClient = new GoogleApiClient.Builder(MyApplication.getContext())
+                        .addApi(LocationServices.API)
+                        .build();
+
+                googleApiClient.blockingConnect();
+
+                LocationRequest request = LocationRequest.create();
+                request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+                request.setNumUpdates(1);
+
+                PendingIntent intent = PendingIntent.getService(MyApplication.getContext(), 5, LocationUpdateService.locationUpdate(MyApplication.getContext()), PendingIntent.FLAG_UPDATE_CURRENT);
+
+                //noinspection MissingPermission
+                LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, request, intent);
+            }
         }
 
         return pokemonGo;
@@ -52,12 +95,12 @@ public class PokAPI {
         }).subscribeOn(scheduler).observeOn(AndroidSchedulers.mainThread());
     }
 
-    public static Observable<ArrayList<Pokestop>> pokestop() {
-        return Observable.create(new Observable.OnSubscribe<ArrayList<Pokestop>>() {
+    public static Observable<MapObjects> mapObjects() {
+        return Observable.create(new Observable.OnSubscribe<MapObjects>() {
             @Override
-            public void call(Subscriber<? super ArrayList<Pokestop>> subscriber) {
+            public void call(Subscriber<? super MapObjects> subscriber) {
                 try {
-                    subscriber.onNext(new ArrayList<>(getPokemonGoSync().getMap().getMapObjects().getPokestops()));
+                    subscriber.onNext(getPokemonGoSync().getMap().getMapObjects());
                     subscriber.onCompleted();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -65,6 +108,42 @@ public class PokAPI {
                 }
             }
         }).subscribeOn(scheduler).observeOn(AndroidSchedulers.mainThread());
+    }
+
+    public static Observable<ArrayList<Pokestop>> pokestop() {
+        return mapObjects().map(mapObjects -> new ArrayList<>(mapObjects.getPokestops()));
+    }
+
+    public static Observable<ArrayList<Pokestop>> pokestop(Collection<String> ids)  {
+        return pokestop().map(pokestops -> {
+            ArrayList<Pokestop> list = new ArrayList<>();
+
+            for(Pokestop pokestop : pokestops) {
+                if(ids.contains(pokestop.getId())) list.add(pokestop);
+            }
+
+            return list;
+        });
+    }
+
+    public static Observable<Pokestop> pokestop(String id) {
+        return Observable.create(subscriber -> {
+            pokestop().toBlocking().subscribe(pokestops -> {
+                for(Pokestop pokestop : pokestops) {
+                    if(id.equals(pokestop.getId())) {
+                        subscriber.onNext(pokestop);
+                        subscriber.onCompleted();
+                        return;
+                    }
+                }
+
+                subscriber.onError(new Resources.NotFoundException());
+            });
+        });
+    }
+
+    public static Observable<ArrayList<MapPokemonOuterClass.MapPokemon>> catchablePokemons() {
+        return mapObjects().map(mapObjects -> new ArrayList<>(mapObjects.getCatchablePokemons()));
     }
 
     public static Observable<PlayerProfile> profile() {

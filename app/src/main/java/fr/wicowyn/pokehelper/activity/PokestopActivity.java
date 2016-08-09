@@ -3,11 +3,14 @@ package fr.wicowyn.pokehelper.activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -29,6 +32,7 @@ import rx.functions.Func2;
 
 public class PokestopActivity extends BaseActivity {
     private ArrayList<Marker> markers = new ArrayList<>();
+    private ArrayList<Circle> shapes = new ArrayList<>();
     private Marker ownMarker;
 
 
@@ -85,7 +89,12 @@ public class PokestopActivity extends BaseActivity {
             marker.remove();
         }
 
+        for(Circle circle : shapes) {
+            circle.remove();
+        }
+
         markers.clear();
+        shapes.clear();
 
         LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
 
@@ -95,6 +104,29 @@ public class PokestopActivity extends BaseActivity {
             markers.add(map.addMarker(new MarkerOptions()
                     .position(position)
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_ev_station_black_24dp))));
+
+            int color;
+            int colorLight;
+
+            if(pokestop.canLoot(false)) {
+                color = ContextCompat.getColor(this, R.color.green);
+                colorLight = ContextCompat.getColor(this, R.color.green_light);
+            }
+            else if(pokestop.canLoot(true)){
+                color = ContextCompat.getColor(this, R.color.blue);
+                colorLight = ContextCompat.getColor(this, R.color.blue_light);
+            }
+            else {
+                color = ContextCompat.getColor(this, R.color.pink);
+                colorLight = ContextCompat.getColor(this, R.color.pink_light);
+            }
+
+            shapes.add(map.addCircle(new CircleOptions()
+                    .center(position)
+                    .radius(30)
+                    .strokeColor(color)
+                    .fillColor(colorLight)));
+
             boundsBuilder.include(position);
         }
 
