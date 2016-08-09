@@ -83,6 +83,7 @@ public class PokestopService extends IntentService {
 
     private void sendNotification(int count) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
+                .setSmallIcon(R.drawable.pikachu)
                 .setContentTitle(getString(R.string.near_pokestop_title))
                 .setContentText(getResources().getQuantityString(R.plurals.near_pokestop_content, count, count))
                 .setAutoCancel(true)
@@ -93,6 +94,7 @@ public class PokestopService extends IntentService {
 
     private void sendLootNotification(int count) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
+                .setSmallIcon(R.drawable.pikachu)
                 .setContentTitle(getString(R.string.pokestop_looted_title))
                 .setContentText(getResources().getQuantityString(R.plurals.pokestop_looted, count, count))
                 .setAutoCancel(true)

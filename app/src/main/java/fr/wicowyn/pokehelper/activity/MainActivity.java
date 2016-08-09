@@ -47,10 +47,10 @@ public class MainActivity extends BaseActivity {
 
         ButterKnife.bind(this);
 
-        PokAPI.profileData().map(PlayerDataOuterClass.PlayerData::getUsername).subscribe(s -> {
+        unsubscribeOn(DESTROY, PokAPI.profileData().map(PlayerDataOuterClass.PlayerData::getUsername).subscribe(s -> {
             name.setText(s);
             Log.i("user_name", s);
-        });
+        }));
 
         launchLocationUpdate();
     }
@@ -85,8 +85,7 @@ public class MainActivity extends BaseActivity {
                         LocationServices.GeofencingApi.addGeofences(
                                 googleApiClient,
                                 request,
-                                getGeofencingIntent()
-                        );
+                                getGeofencingIntent());
                     })
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(geofences -> {
@@ -136,10 +135,12 @@ public class MainActivity extends BaseActivity {
                         .addApi(LocationServices.API)
                         .build();
 
+
                 googleApiClient.blockingConnect();
 
                 LocationRequest request = LocationRequest.create();
-                request.setPriority(LocationRequest.PRIORITY_NO_POWER);
+                request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+//                request.set
 
                 PendingIntent intent = PendingIntent.getService(this, 5, LocationUpdateService.locationUpdate(this), PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -157,7 +158,7 @@ public class MainActivity extends BaseActivity {
     private Geofence toGeofence(Pokestop pokestop) {
         return new Geofence.Builder()
                 .setRequestId(pokestop.getId())
-                .setCircularRegion(pokestop.getLatitude(), pokestop.getLongitude(), 40)
+                .setCircularRegion(pokestop.getLatitude(), pokestop.getLongitude(), 60)
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
                 .setExpirationDuration(Geofence.NEVER_EXPIRE)
                 .build();

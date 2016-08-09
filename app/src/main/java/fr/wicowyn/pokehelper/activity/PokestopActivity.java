@@ -101,9 +101,9 @@ public class PokestopActivity extends BaseActivity {
         for(Pokestop pokestop : pokestops) {
             LatLng position = new LatLng(pokestop.getLatitude(), pokestop.getLongitude());
 
-            markers.add(map.addMarker(new MarkerOptions()
-                    .position(position)
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_ev_station_black_24dp))));
+//            markers.add(map.addMarker(new MarkerOptions()
+//                    .position(position)
+//                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_ev_station_black_24dp))));
 
             int color;
             int colorLight;
