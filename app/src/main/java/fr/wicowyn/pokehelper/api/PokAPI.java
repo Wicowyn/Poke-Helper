@@ -3,6 +3,7 @@ package fr.wicowyn.pokehelper.api;
 import android.Manifest;
 import android.app.PendingIntent;
 import android.content.res.Resources;
+import android.location.Location;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
@@ -43,6 +44,25 @@ public class PokAPI {
     public static void disconnect() {
         AppPreference.get().setLastAccount(null);
         pokemonGo = null;
+    }
+
+    public static float pokestopRange() {
+        try {
+            return (float) getPokemonGoSync().getSettings().getFortSettings().getInteractionRangeInMeters();
+        } catch (LoginFailedException e) {
+            e.printStackTrace();
+        } catch (RemoteServerException e) {
+            e.printStackTrace();
+        }
+
+        return 40;
+    }
+
+    public static void setLocation(Location location) {
+        setLocation(
+                location.getLatitude(),
+                location.getLongitude(),
+                location.getAltitude());
     }
 
     public static void setLocation(double latitude, double longitude, double altitude) {

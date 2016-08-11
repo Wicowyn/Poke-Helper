@@ -204,6 +204,7 @@ dependencies {
     compile 'pub.devrel:easypermissions:0.1.7'
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.github.castorflex.smoothprogressbar:library-circular:1.1.0'
+    compile 'com.google.maps.android:android-maps-utils:0.4.3'
 
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'

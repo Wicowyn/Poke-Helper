@@ -23,8 +23,11 @@
 
     <string name="pokestop_looted_title">Pokestop looté</string>
     <plurals name="pokestop_looted">
-        <item quantity="one">Loot %1$d pokestop</item>
-        <item quantity="other">Loot %1$d pokestops</item>
+        <item quantity="one">Loot %1$d / %2$d pokestop</item>
+        <item quantity="other">Loot %1$d / %2$d pokestops</item>
     </plurals>
+
+    <string name="pokestop_updated">Pokestops</string>
+    <string name="pokestop_updated_content">Nouvelle zone de pokestops chargée</string>
 
 </resources>

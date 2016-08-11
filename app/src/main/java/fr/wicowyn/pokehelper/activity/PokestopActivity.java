@@ -59,6 +59,9 @@ public class PokestopActivity extends BaseActivity {
                 .subscribe(pair -> setMyLocation(pair.getValue0(), pair.getValue1())));
         unsubscribeOn(DESTROY, obs.observeOn(AndroidSchedulers.mainThread())
                 .subscribe(pair -> loadPokestop(pair.getValue0(), pair.getValue1())));
+        unsubscribeOn(DESTROY, googleMap().subscribe(map -> {
+            map.setMyLocationEnabled(true);
+        }));
     }
 
     private Observable<GoogleMap> googleMap() {
@@ -101,10 +104,6 @@ public class PokestopActivity extends BaseActivity {
         for(Pokestop pokestop : pokestops) {
             LatLng position = new LatLng(pokestop.getLatitude(), pokestop.getLongitude());
 
-//            markers.add(map.addMarker(new MarkerOptions()
-//                    .position(position)
-//                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_ev_station_black_24dp))));
-
             int color;
             int colorLight;
 
@@ -123,7 +122,7 @@ public class PokestopActivity extends BaseActivity {
 
             shapes.add(map.addCircle(new CircleOptions()
                     .center(position)
-                    .radius(30)
+                    .radius(PokAPI.pokestopRange())
                     .strokeColor(color)
                     .fillColor(colorLight)));
 

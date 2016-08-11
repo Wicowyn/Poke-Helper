@@ -16,12 +16,14 @@ import java.util.List;
 
 import fr.wicowyn.pokehelper.R;
 import fr.wicowyn.pokehelper.api.PokAPI;
+import fr.wicowyn.pokehelper.util.PokestopManager;
 import hugo.weaving.DebugLog;
 
 
 public class PokestopService extends IntentService {
 
     private static final String ENTER= "location";
+    private static final String EXIT_AREA= "exit_area";
 
     public static Intent pokestopEnter(Context context) {
         Intent intent = new Intent(context, PokestopService.class);
@@ -29,6 +31,14 @@ public class PokestopService extends IntentService {
 
         return intent;
     }
+
+    public static Intent exitArea(Context context) {
+        Intent intent = new Intent(context, PokestopService.class);
+        intent.setAction(EXIT_AREA);
+
+        return intent;
+    }
+
     public PokestopService() {
         super("PokestopService");
     }
@@ -40,27 +50,37 @@ public class PokestopService extends IntentService {
 
             if(ENTER.equals(action)) {
                 handleEnter(intent);
+            } else if(EXIT_AREA.equals(action)) {
+                handleExitArea(intent);
             }
         }
+    }
+
+    private void handleExitArea(Intent intent) {
+        GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
+        if(geofencingEvent.hasError()) return;
+
+        PokAPI.setLocation(geofencingEvent.getTriggeringLocation());
+
+        PokestopManager.cancelTracking(getApplicationContext());
+        PokestopManager.launchTracking(getApplicationContext());
+
+        sendAreaNotification();
     }
 
     @DebugLog
     private void handleEnter(Intent intent) {
         GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
 
-        if (geofencingEvent.hasError()) {
-//            String errorMessage = GeofenceErrorMessages.getErrorString(this,
-//                    geofencingEvent.getErrorCode());
-//            Log.e(TAG, errorMessage);
-            return;
-        }
+        if (geofencingEvent.hasError()) return;
+
+        PokAPI.setLocation(geofencingEvent.getTriggeringLocation());
 
         int geofenceTransition = geofencingEvent.getGeofenceTransition();
 
         if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
             List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
 
-            sendNotification(triggeringGeofences.size());
 
             PokAPI.pokestop().toBlocking().subscribe(pokestops -> {
                 int count=0;
@@ -76,30 +96,30 @@ public class PokestopService extends IntentService {
                     }
                 }
 
-                sendLootNotification(count);
+                sendLootNotification(count, triggeringGeofences.size());
             });
         }
     }
 
-    private void sendNotification(int count) {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
-                .setSmallIcon(R.drawable.pikachu)
-                .setContentTitle(getString(R.string.near_pokestop_title))
-                .setContentText(getResources().getQuantityString(R.plurals.near_pokestop_content, count, count))
-                .setAutoCancel(true)
-                .setShowWhen(true);
-
-        NotificationManagerCompat.from(getApplicationContext()).notify(1, builder.build());
-    }
-
-    private void sendLootNotification(int count) {
+    private void sendLootNotification(int count, int above) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
                 .setSmallIcon(R.drawable.pikachu)
                 .setContentTitle(getString(R.string.pokestop_looted_title))
-                .setContentText(getResources().getQuantityString(R.plurals.pokestop_looted, count, count))
+                .setContentText(getResources().getQuantityString(R.plurals.pokestop_looted, count, count, above))
                 .setAutoCancel(true)
                 .setShowWhen(true);
 
         NotificationManagerCompat.from(getApplicationContext()).notify(2, builder.build());
+    }
+
+    private void sendAreaNotification() {
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
+                .setSmallIcon(R.drawable.pikachu)
+                .setContentTitle(getString(R.string.pokestop_updated))
+                .setContentText(getString(R.string.pokestop_updated_content))
+                .setAutoCancel(true)
+                .setShowWhen(true);
+
+        NotificationManagerCompat.from(getApplicationContext()).notify(3, builder.build());
     }
 }
