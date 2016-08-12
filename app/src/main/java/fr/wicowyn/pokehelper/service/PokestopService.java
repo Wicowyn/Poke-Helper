@@ -3,6 +3,7 @@ package fr.wicowyn.pokehelper.service;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 
@@ -60,10 +61,11 @@ public class PokestopService extends IntentService {
         GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
         if(geofencingEvent.hasError()) return;
 
-        PokAPI.setLocation(geofencingEvent.getTriggeringLocation());
+        Location location = geofencingEvent.getTriggeringLocation();
+        PokAPI.setLocation(location);
 
         PokestopManager.cancelTracking(getApplicationContext());
-        PokestopManager.launchTracking(getApplicationContext());
+        PokestopManager.launchTracking(getApplicationContext(), location);
 
         sendAreaNotification();
     }

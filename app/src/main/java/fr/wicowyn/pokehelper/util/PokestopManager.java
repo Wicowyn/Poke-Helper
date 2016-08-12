@@ -3,6 +3,7 @@ package fr.wicowyn.pokehelper.util;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.location.Location;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -15,6 +16,7 @@ import com.google.maps.android.SphericalUtil;
 import com.pokegoapi.api.map.fort.Pokestop;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -73,15 +75,22 @@ public class PokestopManager {
         }).subscribeOn(Schedulers.newThread());
     }
 
+
     public static void launchTracking(Context context) {
+        launchTracking(context, null);
+    }
+
+    public static void launchTracking(Context context, @Nullable Location location) {
         GoogleApiClient googleApiClient=new GoogleApiClient.Builder(context)
                 .addApi(LocationServices.API)
                 .build();
 
         googleApiClient.blockingConnect();
 
-        //noinspection MissingPermission
-        Location location=LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+        if(location == null) {
+            //noinspection MissingPermission
+            location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+        }
 
         if(location != null) {
             LatLng position=new LatLng(location.getLatitude(), location.getLongitude());
@@ -89,12 +98,45 @@ public class PokestopManager {
             PokAPI.pokestop()
                     .map(pokestops -> nearestPokestop(pokestops, position))
                     .toBlocking().subscribe(pokestops -> {
-                        launchTracking(context, googleApiClient, position, pokestops);
+                launchTracking(context, googleApiClient, position, pokestops);
             });
         }
     }
 
     private static void launchTracking(Context context, GoogleApiClient apiClient, LatLng center, List<Pokestop> pokestops) {
+        float distance;
+
+        if(!pokestops.isEmpty()) {
+            launchPokestopTracking(context, apiClient, pokestops);
+
+            Pokestop farthest = Collections.max(pokestops, new NearestPokestop(center));
+
+            LatLng farthestPosition = new LatLng(farthest.getLatitude(), farthest.getLongitude());
+
+            distance = (float) SphericalUtil.computeDistanceBetween(center, farthestPosition) + PokAPI.pokestopRange();
+        }
+        else {
+            distance = 1000; //default max range to see pokestop
+        }
+
+        Log.d("poke_tracking", "area "+center.toString()+ " with radius "+distance+"m");
+
+        //noinspection MissingPermission
+        LocationServices.GeofencingApi.addGeofences(
+                apiClient,
+                new GeofencingRequest.Builder()
+                        .addGeofence(new Geofence.Builder()
+                                .setRequestId(CENTER_POSITION)
+                                .setCircularRegion(center.latitude, center.longitude, distance)
+                                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_EXIT)
+                                .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                                .build())
+                        .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_EXIT)
+                        .build(),
+                getAreaTracking(context));
+    }
+
+    private static void launchPokestopTracking(Context context, GoogleApiClient apiClient, Collection<Pokestop> pokestops) {
         ArrayList<Geofence> geofences=new ArrayList<>(pokestops.size());
 
         for(Pokestop pokestop : pokestops) {
@@ -111,27 +153,6 @@ public class PokestopManager {
                 apiClient,
                 request,
                 getPokestopTracking(context));
-
-        Pokestop farthest = Collections.max(pokestops, new NearestPokestop(center));
-        LatLng farthestPosition = new LatLng(farthest.getLatitude(), farthest.getLongitude());
-
-        float distance = (float) SphericalUtil.computeDistanceBetween(center, farthestPosition) + PokAPI.pokestopRange();
-
-        Log.d("poke_tracking", "area "+farthestPosition.toString()+ " with radius "+distance+"m");
-
-        //noinspection MissingPermission
-        LocationServices.GeofencingApi.addGeofences(
-                apiClient,
-                new GeofencingRequest.Builder()
-                        .addGeofence(new Geofence.Builder()
-                                .setRequestId(CENTER_POSITION)
-                                .setCircularRegion(center.latitude, center.longitude, distance)
-                                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_EXIT)
-                                .setExpirationDuration(Geofence.NEVER_EXPIRE)
-                                .build())
-                        .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_EXIT)
-                        .build(),
-                getAreaTracking(context));
     }
 
     private static List<Pokestop> nearestPokestop(List<Pokestop> pokestops, LatLng position) {
