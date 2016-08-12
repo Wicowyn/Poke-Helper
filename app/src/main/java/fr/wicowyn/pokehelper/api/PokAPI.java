@@ -8,6 +8,7 @@ import android.location.Location;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.firebase.crash.FirebaseCrash;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.map.MapObjects;
 import com.pokegoapi.api.map.fort.Pokestop;
@@ -49,10 +50,9 @@ public class PokAPI {
     public static float pokestopRange() {
         try {
             return (float) getPokemonGoSync().getSettings().getFortSettings().getInteractionRangeInMeters();
-        } catch (LoginFailedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-        } catch (RemoteServerException e) {
-            e.printStackTrace();
+            FirebaseCrash.report(e);
         }
 
         return 40;
@@ -124,6 +124,7 @@ public class PokAPI {
                     subscriber.onCompleted();
                 } catch (Exception e) {
                     e.printStackTrace();
+                    FirebaseCrash.report(e);
                     subscriber.onError(e);
                 }
             }
@@ -179,6 +180,7 @@ public class PokAPI {
                     subscriber.onCompleted();
                 } catch (Exception e) {
                     e.printStackTrace();
+                    FirebaseCrash.report(e);
                     subscriber.onError(e);
                 }
             }

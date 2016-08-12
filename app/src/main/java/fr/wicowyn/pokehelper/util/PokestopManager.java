@@ -53,6 +53,24 @@ public class PokestopManager {
                 getAreaTracking(context));
     }
 
+    public static void cancelTrackingOf(Context context, Collection<Pokestop> pokestops) {
+        GoogleApiClient googleApiClient = new GoogleApiClient.Builder(context)
+                .addApi(LocationServices.API)
+                .build();
+
+        googleApiClient.blockingConnect();
+
+        ArrayList<String> ids = new ArrayList<>();
+
+        for(Pokestop pokestop : pokestops) {
+            ids.add(pokestop.getId());
+        }
+
+        LocationServices.GeofencingApi.removeGeofences(
+                googleApiClient,
+                ids);
+    }
+
     public static Observable<Void> cancelTrackingAsync(Context context) {
         return Observable.create(new Observable.OnSubscribe<Void>() {
             @Override
@@ -101,6 +119,22 @@ public class PokestopManager {
                 launchTracking(context, googleApiClient, position, pokestops);
             });
         }
+    }
+
+    public static void launchTrackingOf(Context context, Collection<String> ids) {
+        GoogleApiClient googleApiClient=new GoogleApiClient.Builder(context)
+                .addApi(LocationServices.API)
+                .build();
+
+        googleApiClient.blockingConnect();
+
+        PokAPI.pokestop()
+                .flatMap(Observable::from)
+                .filter(pokestop -> ids.contains(pokestop.getId()))
+                .toList()
+                .toBlocking().subscribe(pokestops -> {
+            launchPokestopTracking(context, googleApiClient, pokestops);
+        });
     }
 
     private static void launchTracking(Context context, GoogleApiClient apiClient, LatLng center, List<Pokestop> pokestops) {
