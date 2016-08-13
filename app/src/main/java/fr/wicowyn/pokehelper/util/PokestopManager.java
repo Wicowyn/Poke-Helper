@@ -12,6 +12,7 @@ import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.common.collect.Lists;
+import com.google.firebase.crash.FirebaseCrash;
 import com.google.maps.android.SphericalUtil;
 import com.pokegoapi.api.map.fort.Pokestop;
 
@@ -65,6 +66,8 @@ public class PokestopManager {
         for(Pokestop pokestop : pokestops) {
             ids.add(pokestop.getId());
         }
+
+        FirebaseCrash.logcat(Log.INFO, "poke_tracking", "cancel_tracking of "+ids.toString());
 
         LocationServices.GeofencingApi.removeGeofences(
                 googleApiClient,
@@ -153,7 +156,7 @@ public class PokestopManager {
             distance = 1000; //default max range to see pokestop
         }
 
-        Log.d("poke_tracking", "area "+center.toString()+ " with radius "+distance+"m");
+        FirebaseCrash.logcat(Log.INFO, "poke_tracking", "area "+center.toString()+" with radius "+distance+"m for "+pokestops.size()+" pokestops") ;
 
         //noinspection MissingPermission
         LocationServices.GeofencingApi.addGeofences(

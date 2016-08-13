@@ -1,0 +1,73 @@
+{
+  "project_info": {
+    "project_number": "32508521233",
+    "firebase_url": "https://pokehelper-cde0f.firebaseio.com",
+    "project_id": "pokehelper-cde0f",
+    "storage_bucket": "pokehelper-cde0f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:32508521233:android:8c8be174d713bbc0",
+        "android_client_info": {
+          "package_name": "fr.wicowyn.pokehelper.debug"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "32508521233-rh3jc1lr0o2esj9hekvk3qobgq2ptfqj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVJr7FVe-ApIaJYIT676OntKhNbzQvbi8"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:32508521233:android:000007ea684e23f6",
+        "android_client_info": {
+          "package_name": "fr.wicowyn.pokehelper"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "32508521233-rh3jc1lr0o2esj9hekvk3qobgq2ptfqj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVJr7FVe-ApIaJYIT676OntKhNbzQvbi8"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

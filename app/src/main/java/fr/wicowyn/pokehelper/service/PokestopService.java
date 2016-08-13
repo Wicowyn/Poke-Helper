@@ -8,11 +8,13 @@ import android.content.Intent;
 import android.location.Location;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.util.Log;
 
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
 import com.google.firebase.crash.FirebaseCrash;
 import com.pokegoapi.api.map.fort.Pokestop;
+import com.pokegoapi.api.map.fort.PokestopLootResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +22,6 @@ import java.util.List;
 import fr.wicowyn.pokehelper.R;
 import fr.wicowyn.pokehelper.api.PokAPI;
 import fr.wicowyn.pokehelper.util.PokestopManager;
-import hugo.weaving.DebugLog;
 
 
 public class PokestopService extends IntentService {
@@ -99,7 +100,6 @@ public class PokestopService extends IntentService {
         sendAreaNotification();
     }
 
-    @DebugLog
     private void handleEnter(Intent intent) {
         Context context = getApplicationContext();
         GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
@@ -118,21 +118,28 @@ public class PokestopService extends IntentService {
 
                 for(Pokestop pokestop : pokestops) {
                     if(pokestop.canLoot()) try {
-                        pokestop.loot();
-                        looted.add(pokestop);
+                        PokestopLootResult result = pokestop.loot();
+
+                        if(result.wasSuccessful()) {
+                            looted.add(pokestop);
+
+                            FirebaseCrash.logcat(Log.INFO, "poke_tracking", "loot "+pokestop.getId());
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                         FirebaseCrash.report(e);
                     }
                 }
 
-                PokestopManager.cancelTrackingOf(context, looted);
+                if(!looted.isEmpty()) {
+                    PokestopManager.cancelTrackingOf(context, looted);
 
-                AlarmManager alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-                alarm.set(
-                        AlarmManager.RTC_WAKEUP,
-                        System.currentTimeMillis() + 5*60*1000,
-                        PendingIntent.getService(context, 0, PokestopService.delayAddPokestop(context, looted), PendingIntent.FLAG_UPDATE_CURRENT));
+                    AlarmManager alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+                    alarm.set(
+                            AlarmManager.RTC_WAKEUP,
+                            System.currentTimeMillis() + 5*60*1000,
+                            PendingIntent.getService(context, 0, PokestopService.delayAddPokestop(context, looted), PendingIntent.FLAG_UPDATE_CURRENT));
+                }
 
                 sendLootNotification(looted.size(), triggeringGeofences.size());
             });

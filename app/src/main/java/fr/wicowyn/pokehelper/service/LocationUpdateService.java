@@ -8,7 +8,6 @@ import android.location.Location;
 import com.google.android.gms.location.LocationResult;
 
 import fr.wicowyn.pokehelper.api.PokAPI;
-import hugo.weaving.DebugLog;
 
 
 public class LocationUpdateService extends IntentService {
@@ -38,7 +37,6 @@ public class LocationUpdateService extends IntentService {
         }
     }
 
-    @DebugLog
     private void handleLocationUpdate(Location location) {
         PokAPI.setLocation(
                 location.getLatitude(),
