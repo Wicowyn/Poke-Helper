@@ -12,7 +12,10 @@ import android.util.Log;
 
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crash.FirebaseCrash;
+import com.google.maps.android.SphericalUtil;
 import com.pokegoapi.api.map.fort.Pokestop;
 import com.pokegoapi.api.map.fort.PokestopLootResult;
 
@@ -21,6 +24,7 @@ import java.util.List;
 
 import fr.wicowyn.pokehelper.R;
 import fr.wicowyn.pokehelper.api.PokAPI;
+import fr.wicowyn.pokehelper.app.Event;
 import fr.wicowyn.pokehelper.util.PokestopManager;
 
 
@@ -113,7 +117,9 @@ public class PokestopService extends IntentService {
         if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
             List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
 
-            PokAPI.pokestop().toBlocking().subscribe(pokestops -> {
+            PokAPI.pokestop()
+                    .retry(1)
+                    .toBlocking().subscribe(pokestops -> {
                 ArrayList<Pokestop> looted = new ArrayList<>();
 
                 for(Pokestop pokestop : pokestops) {
@@ -125,6 +131,25 @@ public class PokestopService extends IntentService {
 
                             FirebaseCrash.logcat(Log.INFO, "poke_tracking", "loot "+pokestop.getId());
                         }
+                        else {
+                            switch(result.getResult()) {
+                                case OUT_OF_RANGE:
+                                    double range = SphericalUtil.computeDistanceBetween(
+                                            new LatLng(geofencingEvent.getTriggeringLocation().getLatitude(), geofencingEvent.getTriggeringLocation().getLongitude()),
+                                            new LatLng(pokestop.getLatitude(), pokestop.getLongitude()));
+
+                                    FirebaseCrash.logcat(Log.ERROR, "poke_tracking", "out of range : "+ ((int) range) + "m");
+                                    break;
+                                case IN_COOLDOWN_PERIOD:
+                                    FirebaseCrash.logcat(Log.ERROR, "poke_tracking", "cooldown : "+ pokestop.getCooldownCompleteTimestampMs()+"ms");
+                                    break;
+                            }
+
+                            FirebaseCrash.report(new Exception("Loot failed "+result.getResult()));
+                        }
+
+                        FirebaseAnalytics.getInstance(this).logEvent(Event.lootEvent(result.getResult()), null);
+
                     } catch (Exception e) {
                         e.printStackTrace();
                         FirebaseCrash.report(e);
@@ -142,7 +167,7 @@ public class PokestopService extends IntentService {
                 }
 
                 sendLootNotification(looted.size(), triggeringGeofences.size());
-            });
+            }, FirebaseCrash::report);
         }
     }
 

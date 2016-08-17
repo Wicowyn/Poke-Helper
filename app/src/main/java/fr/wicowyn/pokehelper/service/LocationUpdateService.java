@@ -8,6 +8,8 @@ import android.location.Location;
 import com.google.android.gms.location.LocationResult;
 
 import fr.wicowyn.pokehelper.api.PokAPI;
+import fr.wicowyn.pokehelper.app.MyApplication;
+import fr.wicowyn.pokehelper.util.PokestopManager;
 
 
 public class LocationUpdateService extends IntentService {
@@ -24,7 +26,6 @@ public class LocationUpdateService extends IntentService {
         super("LocationUpdateService");
     }
 
-    @Override
     protected void onHandleIntent(Intent intent) {
         if(intent != null) {
             final String action=intent.getAction();
@@ -32,7 +33,9 @@ public class LocationUpdateService extends IntentService {
             if(LOCATION.equals(action)) {
                 LocationResult.hasResult(intent);
 
-                if(LocationResult.hasResult(intent)) handleLocationUpdate(LocationResult.extractResult(intent).getLastLocation());
+                if(LocationResult.hasResult(intent)) {
+                    handleLocationUpdate(LocationResult.extractResult(intent).getLastLocation());
+                }
             }
         }
     }
@@ -42,5 +45,9 @@ public class LocationUpdateService extends IntentService {
                 location.getLatitude(),
                 location.getLongitude(),
                 location.getAltitude());
+
+        if(PokestopManager.needRelaunchTrackingLocation()) {
+            PokestopManager.launchTracking(MyApplication.getContext(), location);
+        }
     }
 }

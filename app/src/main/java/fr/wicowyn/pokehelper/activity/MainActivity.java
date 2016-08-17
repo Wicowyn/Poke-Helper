@@ -93,8 +93,10 @@ public class MainActivity extends BaseActivity {
 
                 googleApiClient.blockingConnect();
 
-                LocationRequest request = LocationRequest.create();
-                request.setPriority(LocationRequest.PRIORITY_NO_POWER);
+                LocationRequest request = LocationRequest.create()
+                        .setPriority(LocationRequest.PRIORITY_NO_POWER)
+                        .setInterval(0)
+                        .setSmallestDisplacement(0);
 
                 PendingIntent intent = PendingIntent.getService(this, 5, LocationUpdateService.locationUpdate(this), PendingIntent.FLAG_UPDATE_CURRENT);
 

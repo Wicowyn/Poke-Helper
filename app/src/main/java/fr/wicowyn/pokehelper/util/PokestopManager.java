@@ -12,9 +12,11 @@ import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.common.collect.Lists;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crash.FirebaseCrash;
 import com.google.maps.android.SphericalUtil;
 import com.pokegoapi.api.map.fort.Pokestop;
+import com.pokegoapi.exceptions.RemoteServerException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,6 +24,9 @@ import java.util.Collections;
 import java.util.List;
 
 import fr.wicowyn.pokehelper.api.PokAPI;
+import fr.wicowyn.pokehelper.app.Event;
+import fr.wicowyn.pokehelper.app.MyApplication;
+import fr.wicowyn.pokehelper.preference.AppPreference;
 import fr.wicowyn.pokehelper.service.PokestopService;
 import fr.wicowyn.pokehelper.util.comparator.NearestPokestop;
 import rx.Observable;
@@ -37,6 +42,26 @@ public class PokestopManager {
 
     private static final String CENTER_POSITION="center_position";
 
+
+    private static void relaunchOnNetwork() {
+        AppPreference.get().setNeedRelaunchNetwork(true);
+
+        FirebaseAnalytics.getInstance(MyApplication.getContext()).logEvent(Event.TRACKING_NETWORK, null);
+    }
+
+    public static boolean needRelaunchTrackingNetwork() {
+        return AppPreference.get().needRelaunchTrackingNetwork();
+    }
+
+    private static void relaunchOnLocation() {
+        AppPreference.get().setNeedRelaunchLocation(true);
+
+        FirebaseAnalytics.getInstance(MyApplication.getContext()).logEvent(Event.TRACKING_LOCATION, null);
+    }
+
+    public static boolean needRelaunchTrackingLocation() {
+        return AppPreference.get().needRelaunchTrackingLocation();
+    }
 
     public static void cancelTracking(Context context) {
         GoogleApiClient googleApiClient = new GoogleApiClient.Builder(context)
@@ -115,12 +140,25 @@ public class PokestopManager {
 
         if(location != null) {
             LatLng position=new LatLng(location.getLatitude(), location.getLongitude());
+            AppPreference.get().setNeedRelaunchLocation(false);
 
             PokAPI.pokestop()
                     .map(pokestops -> nearestPokestop(pokestops, position))
-                    .toBlocking().subscribe(pokestops -> {
+                    .retry(1).toBlocking().subscribe(pokestops -> {
+                AppPreference.get().setNeedRelaunchLocation(false);
                 launchTracking(context, googleApiClient, position, pokestops);
+            }, throwable -> {
+                if(throwable instanceof RemoteServerException) {
+                    relaunchOnNetwork();
+                    launchTracking(context, googleApiClient, position, Collections.EMPTY_LIST);
+                }
+
+                FirebaseCrash.report(throwable);
             });
+        }
+        else {
+            FirebaseCrash.logcat(Log.WARN, "tracking", "No location to launch area tracking");
+            relaunchOnLocation();
         }
     }
 
@@ -132,9 +170,10 @@ public class PokestopManager {
         googleApiClient.blockingConnect();
 
         PokAPI.pokestop()
+                .retry(1)
                 .flatMap(Observable::from)
                 .filter(pokestop -> ids.contains(pokestop.getId()))
-                .toList()
+                .toList().filter(pokestops -> !pokestops.isEmpty())
                 .toBlocking().subscribe(pokestops -> {
             launchPokestopTracking(context, googleApiClient, pokestops);
         });
@@ -150,7 +189,9 @@ public class PokestopManager {
 
             LatLng farthestPosition = new LatLng(farthest.getLatitude(), farthest.getLongitude());
 
-            distance = (float) SphericalUtil.computeDistanceBetween(center, farthestPosition) + PokAPI.pokestopRange();
+            distance = Math.max(
+                    (float) SphericalUtil.computeDistanceBetween(center, farthestPosition) + PokAPI.pokestopRange(),
+                    300);
         }
         else {
             distance = 1000; //default max range to see pokestop

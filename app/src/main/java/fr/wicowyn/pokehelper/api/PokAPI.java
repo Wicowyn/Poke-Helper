@@ -12,6 +12,7 @@ import com.google.firebase.crash.FirebaseCrash;
 import com.pokegoapi.api.PokemonGo;
 import com.pokegoapi.api.map.MapObjects;
 import com.pokegoapi.api.map.fort.Pokestop;
+import com.pokegoapi.api.map.fort.PokestopLootResult;
 import com.pokegoapi.api.player.PlayerProfile;
 import com.pokegoapi.auth.GoogleCredentialProvider;
 import com.pokegoapi.exceptions.LoginFailedException;
@@ -185,5 +186,22 @@ public class PokAPI {
                 }
             }
         }).subscribeOn(scheduler).observeOn(AndroidSchedulers.mainThread());
+    }
+
+    public static Observable<PokestopLootResult> loot(Pokestop pokestop) {
+        return Observable.create(new Observable.OnSubscribe<PokestopLootResult>() {
+            @Override
+            public void call(Subscriber<? super PokestopLootResult> subscriber) {
+                try {
+                    subscriber.onNext(pokestop.loot());
+                    subscriber.onCompleted();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    FirebaseCrash.report(e);
+                    subscriber.onError(e);
+                }
+
+            }
+        }).subscribeOn(scheduler).subscribeOn(AndroidSchedulers.mainThread());
     }
 }
