@@ -83,6 +83,11 @@ public class MainActivity extends BaseActivity {
         finish();
     }
 
+    @OnClick(R.id.pokemons)
+    public void onPokemonsClick() {
+        startActivity(PokemonsActivity.newIntent(this));
+    }
+
     @AfterPermissionGranted(PERM_LOCATION)
     private void launchLocationUpdate() {
         if(EasyPermissions.hasPermissions(this, Manifest.permission.ACCESS_FINE_LOCATION)) {

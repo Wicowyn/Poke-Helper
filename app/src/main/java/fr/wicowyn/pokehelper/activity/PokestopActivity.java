@@ -60,6 +60,7 @@ public class PokestopActivity extends BaseActivity {
         unsubscribeOn(DESTROY, obs.observeOn(AndroidSchedulers.mainThread())
                 .subscribe(pair -> loadPokestop(pair.getValue0(), pair.getValue1())));
         unsubscribeOn(DESTROY, googleMap().subscribe(map -> {
+            //noinspection MissingPermission
             map.setMyLocationEnabled(true);
         }));
     }

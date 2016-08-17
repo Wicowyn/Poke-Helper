@@ -11,8 +11,10 @@
 
     <string name="start">Mise en route</string>
     <string name="stop">Arrêt</string>
+    <string name="pokemons">Mes pokemons</string>
 
     <string name="title_activity_pokestop">Pokestops</string>
+    <string name="title_activity_pokemons">Pokemons</string>
     <string name="access_location_needed">On a VRAIMENT besoin d\'accéder à la localisation</string>
 
     <string name="near_pokestop_title">Pokestop</string>

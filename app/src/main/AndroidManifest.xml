@@ -46,6 +46,11 @@
             android:label="@string/title_activity_pokestop"
             android:theme="@style/AppTheme"/>
 
+        <activity
+            android:name=".activity.PokemonsActivity"
+            android:label="@string/title_activity_pokemons"
+            android:theme="@style/AppTheme"/>
+
         <service
             android:name=".service.LocationUpdateService"
             android:exported="false"/>

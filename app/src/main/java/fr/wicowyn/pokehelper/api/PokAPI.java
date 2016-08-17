@@ -10,16 +10,19 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.firebase.crash.FirebaseCrash;
 import com.pokegoapi.api.PokemonGo;
+import com.pokegoapi.api.inventory.Inventories;
 import com.pokegoapi.api.map.MapObjects;
 import com.pokegoapi.api.map.fort.Pokestop;
 import com.pokegoapi.api.map.fort.PokestopLootResult;
 import com.pokegoapi.api.player.PlayerProfile;
+import com.pokegoapi.api.pokemon.Pokemon;
 import com.pokegoapi.auth.GoogleCredentialProvider;
 import com.pokegoapi.exceptions.LoginFailedException;
 import com.pokegoapi.exceptions.RemoteServerException;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.Executors;
 
 import POGOProtos.Data.PlayerDataOuterClass;
@@ -186,6 +189,26 @@ public class PokAPI {
                 }
             }
         }).subscribeOn(scheduler).observeOn(AndroidSchedulers.mainThread());
+    }
+
+    public static Observable<Inventories> inventories() {
+        return Observable.create(new Observable.OnSubscribe<Inventories>() {
+            @Override
+            public void call(Subscriber<? super Inventories> subscriber) {
+                try {
+                    subscriber.onNext(getPokemonGoSync().getInventories());
+                    subscriber.onCompleted();
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
+            }
+        }).subscribeOn(scheduler).observeOn(AndroidSchedulers.mainThread());
+    }
+
+    public static Observable<List<Pokemon>> pokemons() {
+        return inventories().map(inventories ->
+            new ArrayList<>(inventories.getPokebank().getPokemons())
+        );
     }
 
     public static Observable<PokestopLootResult> loot(Pokestop pokestop) {
