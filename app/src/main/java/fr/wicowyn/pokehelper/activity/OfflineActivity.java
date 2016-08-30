@@ -8,7 +8,6 @@ import android.text.TextUtils;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import fr.wicowyn.pokehelper.R;
-import fr.wicowyn.pokehelper.activity.google.GoogleLoginActivity;
 import fr.wicowyn.pokehelper.activity.google.GoogleUserLoginActivity;
 import fr.wicowyn.pokehelper.preference.AppPreference;
 
@@ -33,11 +32,6 @@ public class OfflineActivity extends BaseActivity {
             ButterKnife.bind(this);
         }
 
-    }
-
-    @OnClick(R.id.google_login)
-    public void onGoogleLogin() {
-        startActivityForResult(GoogleLoginActivity.newIntent(this), REQUEST_LOGIN);
     }
 
     @OnClick(R.id.google_user_login)

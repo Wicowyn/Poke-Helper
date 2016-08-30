@@ -81,7 +81,8 @@ public class PokAPI {
 
             GoogleCredentialProvider credentialProvider = new GoogleCredentialProvider(okHttpClient, AppPreference.get().getLastAccount());
 
-            pokemonGo = new PokemonGo(credentialProvider, okHttpClient);
+            pokemonGo = new PokemonGo(okHttpClient);
+            pokemonGo.login(credentialProvider);
 
             if(EasyPermissions.hasPermissions(MyApplication.getContext(), Manifest.permission.ACCESS_FINE_LOCATION)) {
                 GoogleApiClient googleApiClient = new GoogleApiClient.Builder(MyApplication.getContext())

@@ -13,15 +13,10 @@
     tools:context="fr.wicowyn.pokehelper.activity.OfflineActivity">
 
     <Button
-        android:id="@+id/google_login"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/google_login"/>
-
-    <Button
+        style="@style/Widget.AppCompat.Button.Colored"
         android:id="@+id/google_user_login"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/google_login_2"/>
+        android:text="@string/google_login"/>
 
 </LinearLayout>

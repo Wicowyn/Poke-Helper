@@ -28,7 +28,7 @@ properties.load(project.file("local.properties").newDataInputStream())
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24.0.1"
+    buildToolsVersion "24.0.2"
 
     defaultConfig {
         applicationId "fr.wicowyn.pokehelper"
@@ -38,7 +38,7 @@ android {
         targetSdkVersion 24
 
         versionCode 1
-        versionName "1.0.0"
+        versionName "0.1.0"
     }
 
     dexOptions {
@@ -196,7 +196,7 @@ dependencies {
     }
 
     compile 'com.android.support:multidex:1.0.1'
-    compile 'com.pokegoapi:PokeGOAPI-library:0.4.0'
+    compile 'com.pokegoapi:PokeGOAPI-library:0.4.1'
     compile 'com.jakewharton:butterknife:7.0.1'
     compile 'com.google.guava:guava:19.0'
     compile 'joda-time:joda-time:2.9.4'
@@ -208,7 +208,6 @@ dependencies {
 
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:24.1.1'
 }
 
 tasks.create(name: 'createPublish', group: 'help', dependsOn: ['clean', 'assembleRelease']) << {

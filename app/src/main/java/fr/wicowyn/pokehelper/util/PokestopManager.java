@@ -1,8 +1,11 @@
 package fr.wicowyn.pokehelper.util;
 
+import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.location.Location;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -16,7 +19,8 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crash.FirebaseCrash;
 import com.google.maps.android.SphericalUtil;
 import com.pokegoapi.api.map.fort.Pokestop;
-import com.pokegoapi.exceptions.RemoteServerException;
+
+import org.joda.time.DateTime;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,6 +50,7 @@ public class PokestopManager {
     private static void relaunchOnNetwork() {
         AppPreference.get().setNeedRelaunchNetwork(true);
 
+        FirebaseCrash.logcat(Log.INFO, "tracking", "relaunch on network");
         FirebaseAnalytics.getInstance(MyApplication.getContext()).logEvent(Event.TRACKING_NETWORK, null);
     }
 
@@ -56,6 +61,7 @@ public class PokestopManager {
     private static void relaunchOnLocation() {
         AppPreference.get().setNeedRelaunchLocation(true);
 
+        FirebaseCrash.logcat(Log.INFO, "tracking", "relaunch on location");
         FirebaseAnalytics.getInstance(MyApplication.getContext()).logEvent(Event.TRACKING_LOCATION, null);
     }
 
@@ -139,27 +145,41 @@ public class PokestopManager {
         }
 
         if(location != null) {
-            LatLng position=new LatLng(location.getLatitude(), location.getLongitude());
             AppPreference.get().setNeedRelaunchLocation(false);
+
+            LatLng position=new LatLng(location.getLatitude(), location.getLongitude());
 
             PokAPI.pokestop()
                     .map(pokestops -> nearestPokestop(pokestops, position))
-                    .retry(1).toBlocking().subscribe(pokestops -> {
-                AppPreference.get().setNeedRelaunchLocation(false);
-                launchTracking(context, googleApiClient, position, pokestops);
-            }, throwable -> {
-                if(throwable instanceof RemoteServerException) {
-                    relaunchOnNetwork();
-                    launchTracking(context, googleApiClient, position, Collections.EMPTY_LIST);
-                }
-
-                FirebaseCrash.report(throwable);
-            });
+                    .retry(1).toBlocking().subscribe(
+                    pokestops -> launchTracking(context, googleApiClient, position, pokestops),
+                    throwable -> errorOnLaunchTracking(context, throwable));
         }
         else {
             FirebaseCrash.logcat(Log.WARN, "tracking", "No location to launch area tracking");
             relaunchOnLocation();
         }
+    }
+
+    private static void errorOnLaunchTracking(Context context, Throwable throwable) {
+        ConnectivityManager manager= (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo info=manager.getActiveNetworkInfo();
+
+        if(info == null || info.getState() != NetworkInfo.State.CONNECTED){
+            relaunchOnNetwork();
+        }
+        else {
+            long time = System.currentTimeMillis() + 60*1000;
+
+            AlarmManager alarm = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            alarm.set(
+                    AlarmManager.RTC_WAKEUP, time,
+                    PendingIntent.getService(context, 0, PokestopService.delayTracking(context), PendingIntent.FLAG_UPDATE_CURRENT));
+
+            FirebaseCrash.logcat(Log.INFO, "tracking", "tracking delayed to "+new DateTime(time));
+        }
+
+        FirebaseCrash.report(throwable);
     }
 
     public static void launchTrackingOf(Context context, Collection<String> ids) {

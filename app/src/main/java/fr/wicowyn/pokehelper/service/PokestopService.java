@@ -33,6 +33,7 @@ public class PokestopService extends IntentService {
     private static final String ENTER= "location";
     private static final String EXIT_AREA= "exit_area";
     private static final String DELAY= "delay";
+    private static final String DELAY_TRACKING= "delay_tracking";
 
     private static final String POKESTOP="pokestop";
 
@@ -48,6 +49,13 @@ public class PokestopService extends IntentService {
         }
 
         intent.putStringArrayListExtra(POKESTOP, delayHolders);
+
+        return intent;
+    }
+
+    public static Intent delayTracking(Context context) {
+        Intent intent = new Intent(context, PokestopService.class);
+        intent.setAction(DELAY_TRACKING);
 
         return intent;
     }
@@ -81,8 +89,14 @@ public class PokestopService extends IntentService {
                 handleExitArea(intent);
             } else if(DELAY.equals(action)) {
                 handleDelay(intent);
+            } else if(DELAY_TRACKING.equals(action)) {
+                handleDelayTracking();
             }
         }
+    }
+
+    private void handleDelayTracking() {
+        PokestopManager.launchTracking(getApplicationContext());
     }
 
     private void handleDelay(Intent intent) {
